@@ -11,7 +11,7 @@ real-time stress profiling, and career crisis simulation.
 disha-website/
 ├── index.html   ← Main HTML (all screens)
 ├── style.css    ← All styling
-├── app.js       ← All game logic + Claude API calls
+├── app.js       ← All game logic + Gemini API calls
 └── README.md    ← This file
 ```
 
