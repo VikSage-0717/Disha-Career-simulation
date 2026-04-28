@@ -544,7 +544,7 @@ async function send() {
     return;
   }
 
-  const resp = await callClaude(text);
+  const resp = await callGemini(text);
   hideTyping();
   addMsg('ai', resp);
   S.chatHist.push({ role: 'ai', content: resp });
@@ -555,7 +555,7 @@ async function send() {
 /* ---------------------------------------------------------------
    GEMINI API (via FastAPI backend → llm_agent.generate_next_turn)
 --------------------------------------------------------------- */
-async function callClaude(userReply) {
+async function callGemini(userReply) {
   const histStr = S.chatHist.map(m => `${m.role === 'ai' ? 'AI' : 'User'}: ${m.content}`).join('\n');
   try {
     const res = await fetch("http://localhost:8000/api/v1/simulation-turn", {
@@ -595,15 +595,12 @@ async function genDebrief() {
   const histStr = S.chatHist.map(m => `${m.role === 'ai' ? 'AI' : 'User'}: ${m.content}`).join('\n');
   let db = null;
   try {
-    // Calls your FastAPI → llm_agent.generate_debrief() → Gemini
     const res = await fetch("http://localhost:8000/api/v1/generate-debrief", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_history: histStr })
     });
     const d = await res.json();
-    // d.debrief is a plain text string from Gemini with 3 bullet points
-    // Split into the 3 cards; tip uses a fallback since backend only returns 3 points
     const lines = (d.debrief || '').split('\n').map(l => l.replace(/^[\d\.\-\*\•]+\s*/, '').trim()).filter(l => l);
     db = {
       strength: lines[0] || null,
@@ -611,7 +608,7 @@ async function genDebrief() {
       fit:      lines[2] || null,
       tip:      null
     };
-  } catch { /* use fallbacks below */ }
+  } catch { /* use fallbacks */ }
 
   const s   = db?.strength || "You demonstrated decisive thinking when pressure was high — a genuine strength in demanding roles.";
   const p   = db?.pressure || "You managed stress reasonably well, prioritising action over paralysis even when information was incomplete.";
