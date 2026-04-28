@@ -553,23 +553,21 @@ async function send() {
 }
 
 /* ---------------------------------------------------------------
-   CLAUDE API
+   GEMINI API (via FastAPI backend → llm_agent.generate_next_turn)
 --------------------------------------------------------------- */
 async function callClaude(userReply) {
   const histStr = S.chatHist.map(m => `${m.role === 'ai' ? 'AI' : 'User'}: ${m.content}`).join('\n');
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("http://localhost:8000/api/v1/simulation-turn", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 280,
-        system: `You are a career crisis simulator. The user is exploring being a ${S.career.title}. Generate the NEXT scenario turn: 2-3 sentences. React specifically to their choice, escalate the situation slightly, end with a crisp question. Be vivid and realistic.`,
-        messages: [{ role: "user", content: `History:\n${histStr}\n\nUser just replied: "${userReply}"\n\nNext turn (2-3 sentences, end with a question):` }]
+        chat_history: histStr,
+        user_reply: userReply
       })
     });
     const d = await res.json();
-    return d.content?.[0]?.text || SIM_FALLBACKS[Math.min(S.turn - 1, 2)];
+    return d.ai_response || SIM_FALLBACKS[Math.min(S.turn - 1, 2)];
   } catch { return SIM_FALLBACKS[Math.min(S.turn - 1, 2)]; }
 }
 
@@ -597,20 +595,23 @@ async function genDebrief() {
   const histStr = S.chatHist.map(m => `${m.role === 'ai' ? 'AI' : 'User'}: ${m.content}`).join('\n');
   let db = null;
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    // Calls your FastAPI → llm_agent.generate_debrief() → Gemini
+    const res = await fetch("http://localhost:8000/api/v1/generate-debrief", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 500,
-        system: `You are an empathetic career counselor. Review this simulation. Respond ONLY with valid JSON (no markdown fences): {"strength":"...","pressure":"...","fit":"...","tip":"..."}. Each value 1-2 sentences. Be warm, specific, encouraging.`,
-        messages: [{ role: "user", content: `Career: ${S.career.title}\nAptitude: ${S.apt}%\nStress profile: ${S.profile}\n\nSimulation:\n${histStr}\n\nJSON debrief:` }]
-      })
+      body: JSON.stringify({ chat_history: histStr })
     });
     const d = await res.json();
-    const raw = d.content?.[0]?.text || '{}';
-    db = JSON.parse(raw.replace(/```json|```/g, '').trim());
-  } catch { /* use fallbacks */ }
+    // d.debrief is a plain text string from Gemini with 3 bullet points
+    // Split into the 3 cards; tip uses a fallback since backend only returns 3 points
+    const lines = (d.debrief || '').split('\n').map(l => l.replace(/^[\d\.\-\*\•]+\s*/, '').trim()).filter(l => l);
+    db = {
+      strength: lines[0] || null,
+      pressure: lines[1] || null,
+      fit:      lines[2] || null,
+      tip:      null
+    };
+  } catch { /* use fallbacks below */ }
 
   const s   = db?.strength || "You demonstrated decisive thinking when pressure was high — a genuine strength in demanding roles.";
   const p   = db?.pressure || "You managed stress reasonably well, prioritising action over paralysis even when information was incomplete.";
