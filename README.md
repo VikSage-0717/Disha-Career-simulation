@@ -22,7 +22,7 @@ disha-website/
 ### Option 1 — Open directly in browser (simplest)
 Just double-click `index.html`. Everything runs client-side.
 
-> ⚠️ The gemini API calls (simulation + debrief) require a server context due to
+> ⚠️ The Gemini API calls (simulation + debrief) require a server context due to
 > CORS. For local testing, use Option 2 or 3 below.
 
 ### Option 2 — Python local server (recommended)
