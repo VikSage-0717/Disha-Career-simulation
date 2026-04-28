@@ -22,7 +22,7 @@ disha-website/
 ### Option 1 — Open directly in browser (simplest)
 Just double-click `index.html`. Everything runs client-side.
 
-> ⚠️ The Claude API calls (simulation + debrief) require a server context due to
+> ⚠️ The gemini API calls (simulation + debrief) require a server context due to
 > CORS. For local testing, use Option 2 or 3 below.
 
 ### Option 2 — Python local server (recommended)
@@ -40,15 +40,15 @@ live-server disha-website
 
 ---
 
-## 🤖 AI Features (Claude API)
+## 🤖 AI Features 
 
-The simulation turns and debrief are powered by the Claude API.
+The simulation turns and debrief are powered by the Gemini API.
 
 The API calls are in `app.js` inside:
 - `callClaude()` — generates the next crisis scenario turn
 - `genDebrief()` — generates the personalised career debrief
 
-**These calls go directly to `https://api.anthropic.com/v1/messages`.**
+
 
 > ⚠️ Calling the API directly from the browser exposes your API key.
 > For production, proxy these calls through your FastAPI backend (see below).
