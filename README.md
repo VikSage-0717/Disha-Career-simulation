@@ -44,9 +44,7 @@ live-server disha-website
 
 The simulation turns and debrief are powered by the Gemini API.
 
-The API calls are in `app.js` inside:
-- `callClaude()` — generates the next crisis scenario turn
-- `genDebrief()` — generates the personalised career debrief
+The API calls are in `app.js` 
 
 
 
@@ -66,10 +64,10 @@ Your backend (`main.py`) already has these endpoints:
 | `POST /api/v1/simulation-turn` | Each chat turn |
 | `POST /api/v1/generate-debrief` | End-of-simulation feedback |
 
-To switch from direct Claude API to your backend, replace the fetch calls in `app.js`:
+To switch from direct Gemini API to your backend, replace the fetch calls in `app.js`:
 
 ```javascript
-// In callClaude() — replace with:
+
 const res = await fetch("http://localhost:8000/api/v1/simulation-turn", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -113,7 +111,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
    - Or pick from the top-matches list
 5. **Simulation** → 3-turn AI crisis chat
    - Quick reply buttons available
-   - Powered by Claude API or your backend
+   - Powered by Gemini API or your backend
 6. **Debrief** → animated score ring + 4 personalised insight cards
 
 ---
